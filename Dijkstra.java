@@ -13,5 +13,9 @@ public class Dijkstra {
 		graph.addEdge(3, 4, 7);
 		
 		int [] path = graph.findPath(0, 4);
+		for (int i : path)
+		{
+			System.out.println(i);
+		}
 	}
 }
