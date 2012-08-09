@@ -83,6 +83,7 @@ public class Graph
 				if (data[i][prev] != 0 && weights[i] + data[i][prev] == weights[prev])
 				{
 					prev = i;
+					break;
 				}
 			}
 		}

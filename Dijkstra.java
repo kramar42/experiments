@@ -12,7 +12,7 @@ public class Dijkstra {
 		graph.addEdge(2, 4, 15);
 		graph.addEdge(3, 4, 7);
 		
-		int [] path = graph.findPath(0, 4);
+		int [] path = graph.findPath(4, 1);
 		for (int i : path)
 		{
 			System.out.println(i);
