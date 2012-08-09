@@ -3,6 +3,7 @@ public class Graph
 {
 	int [][] data;
 	int [] weights;
+	boolean [] visited;
 	
 	public Graph()
 	{
@@ -13,6 +14,7 @@ public class Graph
 	{
 		data = new int [size][size];
 		weights = new int [size];
+		visited = new boolean[size];
 	}
 	
 	public void addEdge(int i, int j, int weight)
@@ -39,6 +41,17 @@ public class Graph
 			weights[i] = Dijkstra.INFINITY;
 		}
 		weights[from] = 0;
+		
+		int current = from;
+		for (int i = 0; i < data[current].length; ++i)
+		{
+			if (data[current][i] != 0 && !visited[i])
+			{
+				int newWeight = weights[current] + data[current][i];
+				weights[i] = newWeight < weights[i] ? newWeight : weights[i];
+			}
+		}
+		visited[current] = true;
 		
 		for (int weight : weights)
 			System.out.println(weight);
