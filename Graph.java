@@ -3,13 +3,13 @@ import java.util.ArrayList;
 public class Graph
 {
 	// Contains information about edges
-	int [][] data;
+	private int [][] data;
 	// Weights of vertexes
-	int [] weights;
+	private int [] weights;
 	// What vertexes were visited
-	boolean [] visited;
+	private boolean [] visited;
 	// Sequence of vertexes
-	ArrayList<Integer> path;
+	private ArrayList<Integer> path;
 	
 	public Graph()
 	{
@@ -29,7 +29,7 @@ public class Graph
 		data[i][j] = data[j][i] = weight;
 	}
 	
-	public void calculateMinimums(int from, int to)
+	private void calculateMinimums(int from, int to)
 	{
 		// All vertexes have starting infinity values of weights
 		for (int i = 0; i < weights.length; ++i)
