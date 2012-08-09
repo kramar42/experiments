@@ -2,6 +2,7 @@
 public class Graph
 {
 	int [][] data;
+	int [] weights;
 	
 	public Graph()
 	{
@@ -11,6 +12,7 @@ public class Graph
 	public Graph(int size)
 	{
 		data = new int [size][size];
+		weights = new int [size];
 	}
 	
 	public void addEdge(int i, int j, int weight)
@@ -28,5 +30,18 @@ public class Graph
 			}
 			System.out.println();
 		}
+	}
+	
+	public int [] findPath(int from, int to)
+	{
+		for (int i = 0; i < weights.length; ++i)
+		{
+			weights[i] = Dijkstra.INFINITY;
+		}
+		weights[from] = 0;
+		
+		for (int weight : weights)
+			System.out.println(weight);
+		return new int [5];
 	}
 }
