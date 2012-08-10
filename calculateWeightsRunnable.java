@@ -22,7 +22,7 @@ public class calculateWeightsRunnable implements Runnable {
 						newWeight : graph.getWeight(i);
 				graph.setWeight(i, newWeight); 
 				
-				System.out.println("New weight: " + current + " : " + i + " = " +newWeight);
+				//System.out.println("New weight: " + current + " : " + i + " = " +newWeight);
 			}
 		}
 		finally

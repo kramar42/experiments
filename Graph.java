@@ -1,16 +1,9 @@
 import java.util.ArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Graph
 {
-	// Contains information about edges
-	private int [][] data;
-	// Weights of vertexes
-	private int [] weights;
-	// What vertexes were visited
-	private boolean [] visited;
-	// Sequence of vertexes
-	private ArrayList<Integer> path;
-	
 	public Graph()
 	{
 		this(Dijkstra.GRAPH_SIZE);
@@ -18,15 +11,46 @@ public class Graph
 	
 	public Graph(int size)
 	{
+		lock = new ReentrantLock();
 		data = new int [size][size];
 		weights = new int [size];
 		visited = new boolean[size];
 		path = new ArrayList<Integer>();
 	}
 	
+	public void lock()
+	{
+		lock.lock();
+	}
+	
+	public void unlock()
+	{
+		lock.unlock();
+	}
+	
 	public void addEdge(int i, int j, int weight)
 	{
 		data[i][j] = data[j][i] = weight;
+	}
+	
+	public void setWeight(int i, int weight)
+	{
+		weights[i] = weight;
+	}
+	
+	public int getData(int i, int j)
+	{
+		return data[i][j];
+	}
+	
+	public int getWeight(int i)
+	{
+		return weights[i];
+	}
+	
+	public boolean isVisited(int i)
+	{
+		return visited[i];
 	}
 	
 	private void calculateMinimums(int from, int to)
@@ -42,14 +66,26 @@ public class Graph
 		int current = from;
 		while (current != to)
 		{
+			
 			for (int i = 0; i < data[current].length; ++i)
 			{
+				
+				calculateWeightsRunnable c = 
+						new calculateWeightsRunnable(this, current, i);
+				Thread t = new Thread(c);
+				t.start();
+				
+				
 				// If are connected
+				/*
 				if (data[current][i] != 0 && !visited[i])
 				{
 					int newWeight = weights[current] + data[current][i];
-					weights[i] = newWeight < weights[i] ? newWeight : weights[i];
+					newWeight = newWeight < weights[i] ? 
+							newWeight : weights[i];
+					weights[i] = newWeight; 
 				}
+				*/
 			}
 			visited[current] = true;
 			
@@ -99,4 +135,15 @@ public class Graph
 		
 		return returnPath;
 	}
+	
+	// Lock
+	private Lock lock;
+	// Contains information about edges
+	private int [][] data;
+	// Weights of vertexes
+	private int [] weights;
+	// What vertexes were visited
+	private boolean [] visited;
+	// Sequence of vertexes
+	private ArrayList<Integer> path;
 }
