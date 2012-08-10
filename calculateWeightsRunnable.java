@@ -21,8 +21,6 @@ public class calculateWeightsRunnable implements Runnable {
 				newWeight = newWeight < graph.getWeight(i) ? 
 						newWeight : graph.getWeight(i);
 				graph.setWeight(i, newWeight); 
-				
-				//System.out.println("New weight: " + current + " : " + i + " = " +newWeight);
 			}
 		}
 		finally

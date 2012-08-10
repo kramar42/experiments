@@ -6,12 +6,18 @@ public class Graph
 {
 	public Graph()
 	{
-		this(Dijkstra.GRAPH_SIZE);
+		this(Dijkstra.THREADS_NO, Dijkstra.GRAPH_SIZE);
 	}
 	
-	public Graph(int size)
+	public Graph(int threadsNo)
+	{
+		this(threadsNo, Dijkstra.GRAPH_SIZE);
+	}
+	
+	public Graph(int threadsNo, int size)
 	{
 		lock = new ReentrantLock();
+		threads = new Thread[threadsNo];
 		data = new int [size][size];
 		weights = new int [size];
 		visited = new boolean[size];
@@ -66,26 +72,14 @@ public class Graph
 		int current = from;
 		while (current != to)
 		{
-			
 			for (int i = 0; i < data[current].length; ++i)
 			{
-				
+				// USING SEVERAL THREADS HERE
 				calculateWeightsRunnable c = 
 						new calculateWeightsRunnable(this, current, i);
-				Thread t = new Thread(c);
-				t.start();
 				
-				
-				// If are connected
-				/*
-				if (data[current][i] != 0 && !visited[i])
-				{
-					int newWeight = weights[current] + data[current][i];
-					newWeight = newWeight < weights[i] ? 
-							newWeight : weights[i];
-					weights[i] = newWeight; 
-				}
-				*/
+				threads[i % threads.length] = new Thread(c);
+				threads[i % threads.length].start();
 			}
 			visited[current] = true;
 			
@@ -138,6 +132,8 @@ public class Graph
 	
 	// Lock
 	private Lock lock;
+	// Threads array
+	Thread [] threads;
 	// Contains information about edges
 	private int [][] data;
 	// Weights of vertexes
