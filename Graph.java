@@ -8,12 +8,10 @@ public class Graph
 	{
 		this(Dijkstra.THREADS_NO, Dijkstra.GRAPH_SIZE);
 	}
-	
 	public Graph(int threadsNo)
 	{
 		this(threadsNo, Dijkstra.GRAPH_SIZE);
 	}
-	
 	public Graph(int threadsNo, int size)
 	{
 		lock = new ReentrantLock();

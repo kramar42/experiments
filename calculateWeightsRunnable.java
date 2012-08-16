@@ -1,5 +1,6 @@
 
-public class calculateWeightsRunnable implements Runnable {
+public class calculateWeightsRunnable implements Runnable 
+{
 	
 	public calculateWeightsRunnable(Graph aGraph, int aCurrent, int aI)
 	{
