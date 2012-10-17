@@ -84,7 +84,6 @@ is a function definition + context
 apply, funcall
 apply - '(1 2 3 4 5) (или последний елемент - список)
 funcall - 1 2 3 4 5
-
 ** rlwrap on gentoo
 ** maps
 mapcar
