@@ -160,3 +160,16 @@
 (defun from (n)
   (cons n (from (1+ n))))
 
+(defun foo (&optional (a 10))
+   (print a))
+
+(defun foo2 (&key a b c)
+  (list a b c))
+
+(defparameter hash (make-hash-table :test #'equal))
+(setf (gethash "Apple" hash) 3)
+(setf (gethash "Bulb" hash) 5)
+
+(defun my-format (id x)
+  (format t "[~A]_> ~A~%" id x)
+  x)
