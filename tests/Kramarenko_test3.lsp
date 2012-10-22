@@ -1,20 +1,11 @@
 
-(defun range (from to)
-  (if (eq from to)
-      nil
-      (cons from (range (+ from 1) to))
-  ))
-
 (defparameter hash (make-hash-table))
+
 (defun add2hash (char pos hash)
   (let ((lst (gethash char hash)))
     (setf (gethash char hash)
-          (cons pos lst))))
-
-(defun genhash (str)
-  (mapcar (lambda (pos)
-            (add2hash (char str pos) pos hash))
-          (range 0 (length str))))
+          (cons pos lst)))
+  hash)
 
 (defun nils (range)
   (if (= range 0)
@@ -27,7 +18,14 @@
           (set-in-pos elem (1- pos)
                       (cdr lst)))))
 
-(defun bar (hash)
-  (maphash (lambda (k v)
-                (length v))
-              hash))
+
+(defun genhash (str hash &optional (pos 0))
+  (if (null str)
+    hash
+    (genhash (cdr str)
+             (add2hash (char (coerce str 'string)
+                             pos)
+                       pos
+                       hash)
+             pos)))
+
