@@ -1,0 +1,6 @@
+0, Dmytro, Ivanov, 21
+1, Petro, Petrov, 23
+2, Maxim, Sidorov, 20
+3, Dmytro, Kravzov, 22
+4, Petro, Mazilov, 21
+5, Alex, Kramar, 20
