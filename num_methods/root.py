@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from secant import secant_calc
 from newton import newton_calc
 

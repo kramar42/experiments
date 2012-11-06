@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from parser import parse
 
 def secant_calc(f, a, b, log):
