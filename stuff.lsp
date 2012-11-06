@@ -160,8 +160,6 @@
 (defun from (n)
   (cons n (from (1+ n))))
 
-(defun foo (&optional (a 10))
-   (print a))
 
 (defun foo2 (&key a b c)
   (list a b c))
@@ -173,3 +171,28 @@
 (defun my-format (id x)
   (format t "[~A]_> ~A~%" id x)
   x)
+
+(defmacro nil! (var)
+  (list 'setq var nil))
+
+(defmacro nif (expr pos zero neg)
+  `(case (truncate (signum ,expr))
+    (1 ,pos)
+    (0 ,zero)
+    (-1 ,neg)))
+
+(defmacro while (test &body body)
+  `(do ()
+       ((not ,test))
+     ,@body))
+
+(defmacro for ((var start stop) &body body)
+  `(do ((,var ,start (1+ ,var))
+        (limit ,stop))
+       ((> ,var limit))
+     ,@body))
+
+(defun foo ()
+  (let ((limit 0))
+    (for (x 1 5) (princ x))
+    limit))

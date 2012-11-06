@@ -206,10 +206,13 @@ and puts spaces between the elements."
 
 (defun test ()
   (let ((cases
-          '("4+4+4+4")))
+          '("4+4+4+4"
+            "3*(5-8)*(4-99)"
+            "89*54-23*99-(44-99)")))
     (mapcar (lambda (str)
+              (format t "Testing string: ~A..." str)
               (if (equal str
                          (delexer (lexer str)))
-                (print "Passed")
-                (print "Failed")))
+                (format t "passed~%")
+                (format t "failed~%")))
             cases)))
