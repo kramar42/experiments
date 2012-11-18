@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
-from secant import secant_calc
-from newton import newton_calc
+from secant import *
+from newton import *
 
-def root_method(f, f_, x, epsilon, log):
-    log.write('Strating root method...\n')
-    x_k = newton_calc(f, f_, x, log)
-    while abs(x_k - x) > epsilon:
-        (x, x_k) = (x_k, newton_calc(f, f_, x_k, log))
-        (x, x_k) = secant_calc(f, x, x_k, log)
-        log.write(''.join(['=']*80))
-    log.write('\nResult: {0}\n\n'.format(x_k))
-    return x_k
+def furie(f, f__, x):
+    return f(x)*f__(x) > 0
+
+def root_method(f, f_, f__, a, b, epsilon, log):
+    log.write(' **** Комбинированный метод **** \n')
+    if furie(f, f__, a):
+        (f_a, f_b) = (newton_calc, secant_calc)
+    else:
+        (f_b, f_a) = (newton_calc, secant_calc)
+    while abs(b - a) > epsilon / 2:
+        a = f_a(f, a, b, log)[1]
+        b = f_b(f, f_, b, log)
+    log.write('Результат: {0}\n\n'.format((b+a)/2))
+    return (b+a)/2
