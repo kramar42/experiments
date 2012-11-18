@@ -220,3 +220,13 @@
 (defmacro abbrev (short long)
   `(defmacro ,short (&rest rest)
      `(,',long ,@rest)))
+
+(set-macro-character #\] (get-macro-character #\)))
+
+(set-dispatch-macro-character #\# #\[
+                              #'(lambda (stream char1 char2)
+                                  (let ((accum nil)
+                                        (pair (read-delimited-list #\] stream t)))
+                                    (do ((i (ceiling (car pair)) (1+ i)))
+                                        ((> i (floor (cadr pair))) (list 'quote (nreverse accum)))
+                                      (push i accum)))))
