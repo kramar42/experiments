@@ -16,7 +16,6 @@
 (defparameter numbers-table '(100))
 
 
-
 ; LEXER FUNCTIONS
 
 (defun lexer (input)
@@ -56,20 +55,30 @@
   (setf input input)
   (scan)
   (expr))
+
+
 (defun expr ()
-  (remove nil
+  (let ((term-val (term))
+        (expr-val (expr-list)))
+    (remove nil
           (list
-           'expression
-           (term)
-           (expr-list))))
+           'expr
+           (car expr-val)
+           term-val
+           (cdr expr-val)))))
 
 
 (defun term ()
-  (remove nil
+  (let ((factor-val (factor))
+        (term-val (term-list)))
+    (if (null term-val)
+      factor-val
+      (remove nil
           (list
            'term
-           (factor)
-           (term-list))))
+           (car term-val)
+           factor-val
+           (cdr term-val))))))
 
 
 (defun factor ()
@@ -89,7 +98,7 @@
           nil))))
     ((not (null (get-number token)))
      (remove nil
-             (list 'number (get-number token))))))
+             (list 'num (get-number token))))))
 
 
 (defun expr-list ()
@@ -98,11 +107,17 @@
     (if (member sign expr-signs)
       (progn
         (scan)
-        (remove nil
-                (list
-                 (get-sign sign)
-                 (term)
-                 (expr-list)))))))
+        (let ((term-val (term))
+              (expr-val (expr-list))
+              (sign (get-sign sign)))
+          (remove nil
+                  (if (null expr-val)
+                    (cons sign term-val)
+                    (list
+                     sign
+                     (car expr-val)
+                     term-val
+                     (cdr expr-val)))))))))
 
 
 (defun term-list ()
@@ -113,11 +128,17 @@
     (progn
         (scan)
         ; return new list without nils
-        (remove nil
-                (list
-                 (get-sign sign)
-                 (factor)
-                 (term-list)))))))
+        (let ((factor-val (factor))
+              (term-val (term-list))
+              (sign (get-sign sign)))
+          (remove nil
+                  (if (null term-val)
+                    (cons sign factor-val)
+                    (list
+                     sign
+                     (car term-val)
+                     factor-val
+                     (cdr term-val)))))))))
 
 
 
@@ -220,3 +241,8 @@
 
 (defun get-sign (sign)
   (intern (coerce (list sign) 'string)))
+
+
+(defun parse (input)
+  (lexer input)
+  (parser output))
