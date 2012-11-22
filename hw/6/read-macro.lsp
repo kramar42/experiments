@@ -1,19 +1,15 @@
-
 (defparameter num-values nil)
-; chars, that can be separators in (<expr>)
 (defparameter separators '(#\( #\)))
-; chars, that can be separators in +- <term>
 (defparameter expr-signs '(#\+ #\-))
-; chars, that can be separators in */ <factor>
 (defparameter term-signs '(#\* #\/))
 
-(defparameter token nil)
-(defparameter input nil)
-(defparameter output nil)
-(defparameter num-accum nil)
+(defparameter _token_ nil)
+(defparameter _input_ nil)
+(defparameter _output_ nil)
 
-(defparameter identif-table '(0))
-(defparameter numbers-table '(100))
+(defparameter num-accum nil)
+(defparameter identif-table nil)
+(defparameter numbers-table nil)
 
 
 ; LEXER FUNCTIONS
@@ -23,28 +19,36 @@
 
 
 (defun lexer* (input)
-  (init)
-  (setf input input)
-  (scan)
-  (lexer-expander)
-  (setf output (reverse output))
-  output)
+  (let ((old-input _input_)
+        (old-output _output_)
+        (old-token _token_)
+        (result nil))
+    
+    (setf _input_ input)
+    (scan)
+    (lexer-expander)
+    (setf _output_ (reverse _output_))
+
+    (setf result _output_)
+    (setf _input_ old-input)
+    (setf _output_ old-output)
+    (setf _token_ old-token)
+    result))
 
 
 (defun lexer-expander ()
   ; process number
   (cond
-    ((member token num-values)
+    ((member _token_ num-values)
      (read-num)) 
     ; or any other valid symbol
-    ((not (null (assoc token
+    ((not (null (assoc _token_
                        (cdr identif-table))))
      (progn
-       (out (get-identif token))
+       (out (get-identif _token_))
        (scan)))
     (t (out nil)))
-  (if (null token)
-    nil
+  (if (not (null _token_))
     (lexer-expander)))
 
 
@@ -52,9 +56,16 @@
 ; PARSER FUNCTIONS
 
 (defun parser (input)
-  (setf input input)
-  (scan)
-  (expr))
+  (let ((old-input _input_)
+        (old-token _token_)
+        (result (gensym)))
+    (setf _input_ input)
+    (scan)
+    (setf result (expr))
+
+    (setf _input_ old-input)
+    (setf _token_ old-token)
+    result))
 
 
 (defun expr ()
@@ -84,7 +95,7 @@
 (defun factor ()
   (cond
     ; opening bracket
-    ((eq token (get-identif #\())
+    ((eq _token_ (get-identif #\())
      (progn
        (scan)
        (list
@@ -93,17 +104,16 @@
         ; then -> expression
         (expr)
         ; closing bracket
-        (if (eq token (get-identif #\)))
+        (if (eq _token_ (get-identif #\)))
           ']
           nil))))
-    ((not (null (get-number token)))
-     (remove nil
-             (list 'num (get-number token))))))
+    ((not (null (get-number _token_)))
+     (list 'num (get-number _token_)))))
 
 
 (defun expr-list ()
   ; if token eq + or -
-  (let ((sign (rget-identif token)))
+  (let ((sign (rget-identif _token_)))
     (if (member sign expr-signs)
       (progn
         (scan)
@@ -123,7 +133,7 @@
 (defun term-list ()
   (scan)
   ; if token eq * or /
-  (let ((sign (rget-identif token)))
+  (let ((sign (rget-identif _token_)))
     (if (member sign term-signs)
     (progn
         (scan)
@@ -144,15 +154,10 @@
 
 ; SOME ADDITIONAL FUNCTIONS
 
-(defun test ()
-  (lexer "1*(2*(3-4)-5)*6-7+8-9")
-  (parser output))
-
-
 (defun read-num ()
-  (if (member token num-values)
+  (if (member _token_ num-values)
     (progn
-      (push token num-accum)
+      (push _token_ num-accum)
       (scan)
       (read-num))
     (progn
@@ -172,8 +177,9 @@
   (setf num-values (mapcar #'code-char
                                  (range 10
                                         (char-code #\0))))
-  (setf token nil)
-  (setf output nil)
+  (setf _token_ nil)
+  (setf _input_ nil)
+  (setf _output_ nil)
   (setf num-accum nil)
   (setf identif-table '(0))
   (setf numbers-table '(100))
@@ -182,7 +188,15 @@
         (concatenate 'list
                      separators
                      expr-signs
-                     term-signs)))
+                     term-signs))
+  T)
+
+
+(defun refresh ()
+  (setf _token_ nil)
+  (setf _input_ nil)
+  (setf _output_ nil)
+  T)
 
 
 (defun range (count &optional (start 0) (step 1))
@@ -219,12 +233,12 @@
 
 
 (defun out (identif)
-  (push identif output))
+  (push identif _output_))
 
 
 (defun scan ()
-  (setf token (car input))
-  (setf input (cdr input)))
+  (setf _token_ (car _input_))
+  (setf _input_ (cdr _input_)))
 
 
 (defun get-identif (identif)
@@ -244,5 +258,15 @@
 
 
 (defun parse (input)
-  (lexer input)
-  (parser output))
+  (parser (lexer input)))
+
+
+(set-macro-character #\! (get-macro-character #\)))
+(set-dispatch-macro-character #\# #\!
+                              (lambda (stream sub-char arg)
+                                (let ((cmd (read stream t nil t))
+                                      (string (read stream t nil t)))
+                                  (list sub-char arg)
+                                  (setf _input_ (lexer string))
+                                  (scan)
+                                  (list 'quote (funcall cmd)))))

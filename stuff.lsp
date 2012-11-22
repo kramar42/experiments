@@ -172,9 +172,6 @@
   (format t "[~A]_> ~A~%" id x)
   x)
 
-(defmacro nil! (var)
-  (list 'setq var nil))
-
 (defmacro nif (expr pos zero neg)
   `(case (truncate (signum ,expr))
     (1 ,pos)
@@ -226,7 +223,14 @@
 (set-dispatch-macro-character #\# #\[
                               #'(lambda (stream char1 char2)
                                   (let ((accum nil)
-                                        (pair (read-delimited-list #\] stream t)))
+                                        (pair (read-delimited-list #\]
+                                                                   stream t)))
                                     (do ((i (ceiling (car pair)) (1+ i)))
-                                        ((> i (floor (cadr pair))) (list 'quote (nreverse accum)))
+                                        ((> i (floor (cadr pair)))
+                                         (list 'quote (nreverse accum)))
                                       (push i accum)))))
+
+(defun test ()
+  (factors 10000))
+
+(test)
