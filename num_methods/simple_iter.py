@@ -3,8 +3,9 @@ from parser import parse
 
 def simple_iter_calc(f, lambd, x, log):
     log.write('Итерационное вычесление для x: {0}\n'.format(x))
+    log.write(str(x) + '\n')
     x_k = parse('x_k = ',
-                'x - lambd * f(x)',
+                'x - λ * f(x)',
                 {'x': x, 'λ': lambd},
                 {'f': f}, log)
     log.write(''.join(['=']*80) + '\n')
@@ -24,4 +25,5 @@ def simple_iter_method(f, f_, a, b, epsilon, log):
     while abs(x_k - x) > ((1 - q)/q*epsilon):
         x, x_k = x_k, simple_iter_calc(f, lambd, x_k, log)
 
+    log.write('Результат: ' + str(x_k) + '\n\n')
     return x_k

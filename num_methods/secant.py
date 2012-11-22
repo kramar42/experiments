@@ -2,6 +2,7 @@
 from parser import parse
 
 def secant_calc(f, a, b, log):
+    log.write(str((b+a)/2) + '\n')
     log.write('Уточнение промежутка a, b: {0}, {1}\n'.format(a,b))
 
     a = parse('a = ',

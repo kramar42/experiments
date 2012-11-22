@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from mpmath import *
+from operator import and_
+
 def reverse(lst):
     result = lst[:]
     result.reverse()
@@ -8,11 +10,7 @@ def reverse(lst):
 def quadr(coeffs, epsilon, log, p):
     log.write('Подсчет новых коэффициентов...\n')
 
-    # array of k variables. from 0 to len(coeffs)
     k_array = range(len(coeffs))
-    
-    
-    # calculating difference between new_coeffs & coeffs
     delta = map(lambda k: 2*sum(
                             map(lambda (x,y,z): x*y*z,
                                 zip(
@@ -22,41 +20,59 @@ def quadr(coeffs, epsilon, log, p):
                 k_array)
     new_coeffs = map(lambda k: coeffs[k]**2 + delta[k], k_array)
 
+    delta = map(lambda elem: elem < epsilon, delta)
+    delta = reduce(and_, delta)
+
+    log.write('Новые коэффициенты:\n')
+    for coeff in new_coeffs:
+        log.write(str(coeff) + '\n')
     log.write(''.join(['=']*80) + '\n')
-    return p+1, new_coeffs
+    return p+1, delta, new_coeffs
 
 def lb4m_method(coeffs, epsilon, log):
     log.write(' **** Метод Лобачевского **** \n')
+    f = make_arithm_eq(coeffs)
 
     coeffs = map(lambda x: mpf(x), coeffs)
     p, delta, new_coeffs = quadr(coeffs, epsilon, log, 0)
-    new_coeffs = map(lambda x: x/max(new_coeffs), new_coeffs)
-    
-    for i in range(100):
-        (p, new_coeffs) = quadr(new_coeffs, epsilon, log, p)
+
+    while not delta:
+        (p, delta, new_coeffs) = quadr(new_coeffs, epsilon, log, p)
 
     log.write('Конец итерационного процесса. Конечные коэффициенты:\n')
-    log.write(str(new_coeffs) + '\n')
+    for coeff in new_coeffs:
+        log.write(str(coeff) + '\n')
+    log.write(''.join(['=']*80) + '\n')
     log.write('Подсчет приближенных корней...\n')
     log.write('Количество итераций метода: ' + str(p) + '\n')
 
-    n = len(new_coeffs) - 1
-    result = map(lambda i: (new_coeffs[n-i] / new_coeffs[n-i+1])*1/2**p,
-                 range(1, n+1))
+    n = len(new_coeffs)
+    result = map(lambda k: (new_coeffs[n-k]/new_coeffs[n-k-1])**(0.5**p), range(1, n))
+    ans = []
 
-    log.write('Результат:\n' + str(result) + '\n\n')
-    return coeffs
+    for x in result:
+        if abs(f(-x)) < abs(f(x)):
+            ans.append(-x)
+        else:
+            ans.append(x)
+                 
+    log.write('Результат:\n')
+    for root in ans:
+        log.write(str(root) + '\n')
+    log.write(''.join(['=']*80) + '\n')
+    log.write('\n')
+    return ans
 
 def make_arithm_eq(arithm_coeffs):
     return (lambda x:
-                sum(map(lambda coeff, power:
+                sum(map(lambda (coeff, power):
                             coeff*x**power,
                         zip(arithm_coeffs,
                             reverse(range(len(arithm_coeffs)))))))
 
 def make_arithm_eq_(arithm_coeffs):
     return (lambda x:
-                sum(map(lambda coeff, power:
+                sum(map(lambda (coeff, power):
                             coeff*power*x**(power-1),
                         zip(arithm_coeffs,
                             reverse(range(len(arithm_coeffs)))[0:-1]))))

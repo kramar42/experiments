@@ -3,6 +3,7 @@ from parser import parse
 
 def newton_calc(f, f_, x, log):
     log.write('Уточнение корня x: {0}\n'.format(x))
+    log.write(str(x) + '\n')
     a = parse('x_k = ',
               'x - f(x) / f_(x)',
               {'x': x},
