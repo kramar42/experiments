@@ -12,31 +12,22 @@
 (defmacro cut (&rest rest)
   (let ((symbols (gensym))
         (expand nil))
+    (setf symbols nil)
+
     (labels ((%expander (rest)
-      (let ((head (car rest))
-            (next nil))
+      (let ((head (car rest)))
        (cond
         ((null head)
           nil)
 
-        ((not (atom head))
-          (progn
-            (print "HEAD")
-            (setf next (%expander head))))
-
         ((eq '_ head)
          (let ((var (gensym)))
-          (print "GENSYM")
           (push var symbols)
-          (setf next var)))
+          `(cons ,var ,(%expander (cdr rest)))))
 
         (t
-          (setf next head)))
+          `(cons ,head ,(%expander (cdr rest))))))))
 
-        (if (not (null head))
-          `(cons ,next ,(%expander (cdr rest)))))))
-
-    (setf symbols nil)
     (setf expand (%expander rest))
     (setf symbols (reverse symbols))
     `(lambda (,@symbols) ,expand))))
