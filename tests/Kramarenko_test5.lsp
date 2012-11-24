@@ -10,17 +10,36 @@
      (when it ,@body)))
 
 (defmacro cut (&rest rest)
-  (let ((symbols nil))
+  (let ((symbols (gensym))
+        (expand nil))
     (labels ((%expander (rest)
-             (if (equalp '_ (car rest))
-               (let ((var (gensym)))
-                 (push var symbols)
-                 `(cons ,var ,(%expander (cdr rest))))
-               `(list ,rest))))
-    (%expander rest))))
+      (let ((head (car rest))
+            (next nil))
+       (cond
+        ((null head)
+          nil)
 
-(defmacro sum (&rest rest)
-  `(+ ,@rest))
+        ((not (atom head))
+          (progn
+            (print "HEAD")
+            (setf next (%expander head))))
+
+        ((eq '_ head)
+         (let ((var (gensym)))
+          (print "GENSYM")
+          (push var symbols)
+          (setf next var)))
+
+        (t
+          (setf next head)))
+
+        (if (not (null head))
+          `(cons ,next ,(%expander (cdr rest)))))))
+
+    (setf symbols nil)
+    (setf expand (%expander rest))
+    (setf symbols (reverse symbols))
+    `(lambda (,@symbols) ,expand))))
 
 (defmacro calc (&rest rest)
   `(eval ,@rest))

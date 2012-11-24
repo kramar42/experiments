@@ -27,9 +27,8 @@
     (setf _input_ input)
     (scan)
     (lexer-expander)
-    (setf _output_ (reverse _output_))
+    (setf result (reverse _output_))
 
-    (setf result _output_)
     (setf _input_ old-input)
     (setf _output_ old-output)
     (setf _token_ old-token)
@@ -58,8 +57,9 @@
 (defun parser (input)
   (let ((old-input _input_)
         (old-token _token_)
-        (result (gensym)))
+        (result nil))
     (setf _input_ input)
+    (setf _token_ nil)
     (scan)
     (setf result (expr))
 
@@ -71,25 +71,26 @@
 (defun expr ()
   (let ((term-val (term))
         (expr-val (expr-list)))
-    (remove nil
-          (list
-           'expr
-           (car expr-val)
-           term-val
-           (cdr expr-val)))))
+  (list
+   'expr
+   (car expr-val)
+   term-val
+   (cdr expr-val))))
 
 
 (defun term ()
-  (let ((factor-val (factor))
-        (term-val (term-list)))
-    (if (null term-val)
-      factor-val
-      (remove nil
-          (list
-           'term
-           (car term-val)
-           factor-val
-           (cdr term-val))))))
+  (let* ((factor-val (factor))
+         (term-val (term-list)))
+  (cons
+   'term
+   (if (null term-val)
+    (list
+      (car factor-val)
+      factor-val)
+    (list
+     (car term-val)
+     factor-val
+     (cdr term-val))))))
 
 
 (defun factor ()
@@ -100,13 +101,8 @@
        (scan)
        (list
         'factor
-        '[
         ; then -> expression
-        (expr)
-        ; closing bracket
-        (if (eq _token_ (get-identif #\)))
-          ']
-          nil))))
+        (expr))))
     ((not (null (get-number _token_)))
      (list 'num (get-number _token_)))))
 
@@ -120,14 +116,12 @@
         (let ((term-val (term))
               (expr-val (expr-list))
               (sign (get-sign sign)))
-          (remove nil
-                  (if (null expr-val)
-                    (cons sign term-val)
-                    (list
-                     sign
-                     (car expr-val)
-                     term-val
-                     (cdr expr-val)))))))))
+        (if (null expr-val)
+          (cons sign (list term-val))
+          (list
+            sign
+            term-val
+            expr-val)))))))
 
 
 (defun term-list ()
@@ -141,14 +135,12 @@
         (let ((factor-val (factor))
               (term-val (term-list))
               (sign (get-sign sign)))
-          (remove nil
-                  (if (null term-val)
-                    (cons sign factor-val)
-                    (list
-                     sign
-                     (car term-val)
-                     factor-val
-                     (cdr term-val)))))))))
+        (if (null term-val)
+          (cons sign factor-val)
+          (list
+           sign
+           factor-val
+           term-val)))))))
 
 
 
@@ -189,13 +181,6 @@
                      separators
                      expr-signs
                      term-signs))
-  T)
-
-
-(defun refresh ()
-  (setf _token_ nil)
-  (setf _input_ nil)
-  (setf _output_ nil)
   T)
 
 
@@ -267,6 +252,7 @@
                                 (let ((cmd (read stream t nil t))
                                       (string (read stream t nil t)))
                                   (list sub-char arg)
+                                  (init)
                                   (setf _input_ (lexer string))
                                   (scan)
-                                  (list 'quote (funcall cmd)))))
+                                  `(,cmd))))

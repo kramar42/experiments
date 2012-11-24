@@ -1,2 +1,2 @@
 *.fasl
-lisp.sublime-*
+lisp.sublime-**.sublime-*
