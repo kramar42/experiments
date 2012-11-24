@@ -20,13 +20,16 @@
         ((null head)
           nil)
 
+        ((not (atom head))
+          (cons (%expander head) (%expander (cdr rest))))
+
         ((eq '_ head)
          (let ((var (gensym)))
           (push var symbols)
-          `(cons ,var ,(%expander (cdr rest)))))
+          (cons var (%expander (cdr rest)))))
 
         (t
-          `(cons ,head ,(%expander (cdr rest))))))))
+          (cons head (%expander (cdr rest))))))))
 
     (setf expand (%expander rest))
     (setf symbols (reverse symbols))
