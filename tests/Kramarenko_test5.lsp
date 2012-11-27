@@ -10,9 +10,8 @@
      (when it ,@body)))
 
 (defmacro cut (&rest rest)
-  (let ((symbols (gensym))
+  (let ((symbols nil)
         (expand nil))
-    (setf symbols nil)
 
     (labels ((%expander (rest)
       (let ((head (car rest)))
@@ -35,5 +34,28 @@
     (setf symbols (reverse symbols))
     `(lambda (,@symbols) ,expand))))
 
-(defmacro calc (&rest rest)
-  `(eval ,@rest))
+(defmacro calc (rest)
+  (let ((vars nil))
+    (labels (
+      (%expander (rest)
+        (case (car rest)
+          ('let (%expand-let (cadr rest)))
+          (+ (%expand+
+            (cadr rest)
+            (caddr rest)))))
+
+      (%expand+ (first second)
+        (+
+          (%expander first)
+          (%expander second)))
+
+      (%expand-let (rest)
+        (print "LET")
+        (print rest)
+        (mapcar
+          (lambda (var)
+            (push var vars))
+          rest)
+        `(,vars)))
+
+    (%expander rest))))
