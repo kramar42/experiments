@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from parser import parse
 
+
 def newton_calc(f, f_, x, log):
     log.write('Уточнение корня x: {0}\n'.format(x))
     log.write(str(x) + '\n')
@@ -8,7 +9,7 @@ def newton_calc(f, f_, x, log):
               'x - f(x) / f_(x)',
               {'x': x},
               {'f': f, 'f_': f_}, log)
-    log.write(''.join(['=']*80) + '\n')
+    log.write(''.join(['='] * 80) + '\n')
     return a
 
 

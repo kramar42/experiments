@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+
 def parse(pref, equation, variables, functions, log):
     log.write(pref)
     for k, v in variables.items():

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from parser import parse
 
+
 def secant_calc(f, a, b, log):
-    log.write(str((b+a)/2) + '\n')
-    log.write('Уточнение промежутка a, b: {0}, {1}\n'.format(a,b))
+    log.write(str((b + a) / 2) + '\n')
+    log.write('Уточнение промежутка a, b: {0}, {1}\n'.format(a, b))
 
     a = parse('a = ',
               'b - (b - a) * f(b) / (f(b) - f(a))',
@@ -14,8 +15,9 @@ def secant_calc(f, a, b, log):
               {'a': a, 'b': b},
               {'f': f}, log)
 
-    log.write(''.join(['=']*80) + '\n')
+    log.write(''.join(['='] * 80) + '\n')
     return (a, b)
+
 
 def secant_method(f, a, b, epsilon, log):
     log.write(' **** Метод секущих **** \n')
