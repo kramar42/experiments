@@ -1,24 +1,31 @@
 (defparameter num-values nil)
-(defparameter separators '(#\( #\)))
+(defparameter separator #\;)
 (defparameter expr-signs '(#\+ #\-))
 (defparameter term-signs '(#\* #\/))
+(defparameter scopes '(#\( #\)))
+
+(defparameter const (coerce "const" 'list))
+(defparameter eq-sign (coerce ":=" 'list))
 
 (defparameter _token_ nil)
 (defparameter _input_ nil)
 (defparameter _output_ nil)
 
 (defparameter num-accum nil)
-(defparameter identif-table nil)
-(defparameter numbers-table nil)
+(defparameter identif-table '(0))
+(defparameter numbers-table '(100))
 
+(init)
 
 ; LEXER FUNCTIONS
 
 (defun lexer (input)
+  "Process input as lexems. Type of input - string."
   (lexer* (coerce input 'list)))
 
 
 (defun lexer* (input)
+  "Process input as lexems. Type of input - list of chars."
   (let ((old-input _input_)
         (old-output _output_)
         (old-token _token_)
@@ -36,16 +43,20 @@
 
 
 (defun lexer-expander ()
-  ; process number
+  "Recurcive function that parse input as lexems."
   (cond
+    ; Process number
     ((member _token_ num-values)
      (read-num)) 
-    ; or any other valid symbol
+
+    ; Or any other valid symbol
     ((not (null (assoc _token_
                        (cdr identif-table))))
      (progn
        (out (get-identif _token_))
        (scan)))
+
+    ; Unknown submol
     (t (out nil)))
   (if (not (null _token_))
     (lexer-expander)))
@@ -55,11 +66,13 @@
 ; PARSER FUNCTIONS
 
 (defun parser (input)
+  "Parse input from top of grammar rules."
   (let ((old-input _input_)
         (old-token _token_)
         (result nil))
     (setf _input_ input)
     (setf _token_ nil)
+
     (scan)
     (setf result (expr))
 
@@ -69,6 +82,8 @@
 
 
 (defun expr ()
+  "Parse input as expression.
+  <term> <expr-list>"
   (let ((term-val (term))
         (expr-val (expr-list)))
   (list
@@ -79,6 +94,8 @@
 
 
 (defun term ()
+  "Parse input as term.
+  <factor> <term-list>"
   (let* ((factor-val (factor))
          (term-val (term-list)))
   (cons
@@ -94,21 +111,28 @@
 
 
 (defun factor ()
+  "Parse input as factor.
+  ( <expr> )
+  | <num>
+  | <id>"
   (cond
-    ; opening bracket
+    ; Opening bracket
     ((eq _token_ (get-identif #\())
      (progn
        (scan)
        (list
         'factor
-        ; then -> expression
+        ; Then -> expression
         (expr))))
     ((not (null (get-number _token_)))
      (list 'num (get-number _token_)))))
 
 
 (defun expr-list ()
-  ; if token eq + or -
+  "Parse input as list of expressions.
+  <empty>
+  | <expr-sign> <term> <expr-list>"
+  ; If token eq + or -
   (let ((sign (rget-identif _token_)))
     (if (member sign expr-signs)
       (progn
@@ -125,13 +149,15 @@
 
 
 (defun term-list ()
+  "Parse input as list of terms.
+  <empty>
+  | <term-sign> <factor> <term-list>"
   (scan)
-  ; if token eq * or /
+  ; If token eq * or /
   (let ((sign (rget-identif _token_)))
     (if (member sign term-signs)
     (progn
         (scan)
-        ; return new list without nils
         (let ((factor-val (factor))
               (term-val (term-list))
               (sign (get-sign sign)))
@@ -146,49 +172,67 @@
 
 ; SOME ADDITIONAL FUNCTIONS
 
+(defun init ()
+  "Initial fill of num-values & identif-table."
+  (setf num-values (mapcar #'code-char
+    (labels ((range (count start)
+      (loop repeat count for i from start by 1 collect i)))
+    (range 10
+      (char-code #\0)))))
+  
+  (mapcar (lambda (elem) (add-identif elem))
+    (concatenate 'list
+      (list separator)
+      expr-signs
+      term-signs
+      scopes))
+  T)
+
+
 (defun read-num ()
+  "Read numbers from input & push result to output."
   (if (member _token_ num-values)
     (progn
       (push _token_ num-accum)
       (scan)
       (read-num))
     (progn
-      (out (add-number (process-num)))
+      (labels ((process-num ()
+        "Process digits from num-accum to number & returns it."
+          (reduce (lambda (ack digit) (+ digit (* 10 ack)))
+            (reverse (mapcar (lambda (char)
+             (- (char-code char)
+              (char-code #\0)))
+            num-accum))))
+
+        (add-number (number)
+          "Add number to numbers-table."
+          (let ((id (assoc number (cdr numbers-table)))
+            (new-id (1+ (car numbers-table))))
+
+          ; If there is no such number
+          (if (null id)
+            (progn
+              ; Create new table
+              (setf numbers-table
+                ; With new id number on first place
+                (cons new-id
+                  ; Constructing new list of identifiers
+                  (cons
+                    ; Just adding new dotted pair
+                    (cons number new-id)
+                    (cdr numbers-table))))
+              new-id)
+
+            ; Or return associated id
+            (cdr id)))))
+
+      (out (add-number (process-num))))
       (setf num-accum nil))))
 
 
-(defun process-num ()
-  (reduce (lambda (ack digit) (+ digit (* 10 ack)))
-          (reverse (mapcar (lambda (char)
-                             (- (char-code char)
-                                (char-code #\0)))
-                           num-accum))))
-
-
-(defun init ()
-  (setf num-values (mapcar #'code-char
-                                 (range 10
-                                        (char-code #\0))))
-  (setf _token_ nil)
-  (setf _input_ nil)
-  (setf _output_ nil)
-  (setf num-accum nil)
-  (setf identif-table '(0))
-  (setf numbers-table '(100))
-  
-  (mapcar (lambda (elem) (add-identif elem))
-        (concatenate 'list
-                     separators
-                     expr-signs
-                     term-signs))
-  T)
-
-
-(defun range (count &optional (start 0) (step 1))
-  (loop repeat count for i from start by step collect i))
-
-
 (defun add-identif (identif)
+  "Add identifier to identif-table. Used only in init function."
   (let ((new-id (1+ (car identif-table))))
     (setf identif-table
           (cons new-id
@@ -199,60 +243,48 @@
                  (cdr identif-table))))))
 
 
-(defun add-number (number)
-  (let ((id (assoc number (cdr numbers-table)))
-        (new-id (1+ (car numbers-table))))
-    (if (null id)
-      (progn
-        ; create new table        
-        (setf numbers-table
-          ; with new id number on first place
-          (cons new-id
-                ; constructing new list of identifiers
-                (cons
-                 ; just adding new dotted pair
-                 (cons number new-id)
-                 (cdr numbers-table))))
-        new-id)
-      (cdr id))))
-
-
-(defun out (identif)
-  (push identif _output_))
-
-
-(defun scan ()
-  (setf _token_ (car _input_))
-  (setf _input_ (cdr _input_)))
-
-
 (defun get-identif (identif)
+  "Get identif associated with identif."
   (cdr (assoc identif (cdr identif-table))))
 
 
 (defun rget-identif (identif)
+  "Get right associated identif."
   (car (rassoc identif (cdr identif-table))))
 
 
 (defun get-number (number)
+  "Get number from numbers-table."
   (car (rassoc number (cdr numbers-table))))
 
 
 (defun get-sign (sign)
+  "Get sign symbol from sign char."
   (intern (coerce (list sign) 'string)))
 
 
-(defun parse (input)
-  (parser (lexer input)))
+(defun out (identif)
+  "Push identif to output."
+  (push identif _output_))
+
+
+(defun scan ()
+  "Scan next token from input."
+  (setf _token_ (car _input_))
+  (setf _input_ (cdr _input_)))
 
 
 (set-macro-character #\! (get-macro-character #\)))
 (set-dispatch-macro-character #\# #\!
-                              (lambda (stream sub-char arg)
-                                (let ((cmd (read stream t nil t))
-                                      (string (read stream t nil t)))
-                                  (list sub-char arg)
-                                  (init)
-                                  (setf _input_ (lexer string))
-                                  (scan)
-                                  `(,cmd))))
+  (lambda (stream sub-char arg)
+    (let ((cmd (read stream t nil t))
+      (string (read stream t nil t)))
+
+    ; Just for get rid from warnings
+    (list sub-char arg)
+    ; Process string through lexer
+    (setf _input_ (lexer string))
+    ; Scan first token
+    (scan)
+    ; Run specific command
+    `(,cmd))))
