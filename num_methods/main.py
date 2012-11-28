@@ -37,15 +37,15 @@ def main():
     log_file = 'log.txt'
     log = open(log_file, 'w')
     log.write('')
-    log = sys.stdout
 
     epsilon = 0.0000001
+
     arithmetical_coeffs = [1, -26, -84, 555, 499, -991, -838, 32]
     arithm_eq = make_arithm_eq(arithmetical_coeffs)
     arithm_eq_ = make_arithm_eq_(arithmetical_coeffs)
 
-    secant_method(f_1, -0.5, 1.0, epsilon, log)
-    secant_method(f_1, 1.1, 1.4, epsilon, log)
+    secant_method(f_1, f_1__, -0.5, 1.0, epsilon, log)
+    secant_method(f_1, f_1__, 1.1, 1.4, epsilon, log)
 
     root_method(f_1, f_1_, f_1__, -0.5, 1.0, epsilon, log)
     root_method(f_1, f_1_, f_1__, 1.1, 1.4, epsilon, log)
@@ -56,6 +56,7 @@ def main():
     map(lambda root:
         newton_method(arithm_eq, arithm_eq_, root, epsilon, log),
         lb4m_method(arithmetical_coeffs, epsilon, log))
+
 
 if __name__ == '__main__':
     main()

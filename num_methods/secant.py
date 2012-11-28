@@ -2,27 +2,33 @@
 from parser import parse
 
 
-def secant_calc(f, a, b, log):
-    log.write(str((b + a) / 2) + '\n')
-    log.write('Уточнение промежутка a, b: {0}, {1}\n'.format(a, b))
+def furie(f, f__, x):
+    return f(x) * f__(x) > 0
 
-    a = parse('a = ',
-              'b - (b - a) * f(b) / (f(b) - f(a))',
-              {'a': a, 'b': b},
-              {'f': f}, log)
-    b = parse('b = ',
-              'a - (a - b) * f(a) / (f(a) - f(b))',
-              {'a': a, 'b': b},
-              {'f': f}, log)
+
+def secant_calc(f, x, c, log):
+    log.write('Уточнение корня x: {0}\n'.format(x))
+
+    x_k = parse('x_k = ',
+      'x - (x - c) * f(x) / (f(x) - f(c))',
+      {'x': x, 'c': c},
+      {'f': f}, log)
 
     log.write(''.join(['='] * 80) + '\n')
-    return (a, b)
+    return x_k
 
 
-def secant_method(f, a, b, epsilon, log):
+def secant_method(f, f__, a, b, epsilon, log):
     log.write(' **** Метод секущих **** \n')
-    while abs(b - a) > epsilon / 2:
-        (a, b) = secant_calc(f, a, b, log)
+    if furie(f, f__, a):
+        c = a
+    else:
+        c = b
 
-    log.write('Результат: {0}\n\n'.format(b))
+    x = (a + b) / 2
+    x_k = secant_calc(f, x, c, log)
+    while abs(x_k - x) > epsilon / 2:
+        (x_k, x) = (secant_calc(f, x_k, c, log), x_k)
+
+    log.write('Результат: {0}\n\n'.format(x_k))
     return b
