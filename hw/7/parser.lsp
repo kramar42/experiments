@@ -1,18 +1,22 @@
+(defparameter *const* (coerce "const" 'list))
+
 (defun signp (sym)
-    (or (eq sym #\+) (eq sym #\*) (eq sym #\-) (eq sym #\/) (eq sym #\() (eq sym #\))))
+    (or (eq sym #\+) (eq sym #\*) (eq sym #\-) (eq sym #\/) (eq sym #\;)
+        (eq sym #\() (eq sym #\)) (eq sym #\:) (eq sym #\=)))
     
 (defun signer (sym)
     (or
         (and (eq sym #\+) 'add)
         (and (eq sym #\-) 'sub)
         (and (eq sym #\*) 'mul)
-        (and (eq sym #\/) 'div)))
+        (and (eq sym #\/) 'div)
+        (and (eq sym #\;) 'sep)))
     
 (defun normalize-list (list1)
   (remove-if #'null
              (map 'list
                   (lambda (x)
-                    (cond 
+                    (cond
                       ((or (eq x #\ ) (eq x #\Newline) (eq x #\Tab)) nil)
                       ((signp x) x)
                       ((digit-char-p x))
@@ -20,7 +24,7 @@
                       (t 'ERR)))
              list1)))
             
-(defun expres (str &key (number 0) (read-var nil) (var nil))
+(defun expres (str &key (number 0) (read-const nil) (read-var nil) (var nil))
     (cond
         (read-var
             (if (alpha-char-p (car str))
@@ -30,6 +34,10 @@
                                           'string)))
                  (expres str))))
         ((null str) nil)
+        ((eq (car str) #\c)
+            (cons 'const (expres (parse-const (cdr str) (cdr (coerce "const" 'list))))))
+        ((and (eq (car str) #\:) (eq (cadr str) #\=))
+            (cons 'eq (expres (cddr str))))
         ((eq (car str) #\()
             (cons 'lpt (expres (cdr str))))
         ((eq (car str) #\))
@@ -52,7 +60,7 @@
 (defun parser(str)
     (defun scan() (pop str))
     (defun unscan (el) (push el str))
-    (expr))
+    (grammar))
 
 (defun swapper (lst)
 "Swaps first and second elements of the list, 
@@ -60,6 +68,44 @@
     (if (cddr lst)
         (cons (cadr lst) (cons (car lst) (cddr lst)))
         lst))
+
+(defun stmt* ()
+    (let ((next (stmt (scan))))
+        (if (null next)
+            nil
+            (append nil (list next) (stmt*)))))
+
+(defun stmt (&optional (ts (scan)))
+    (unscan ts)
+    (let ((result nil))
+        (cond
+            ((definition-p ts)
+                (setf result (definition (scan))))
+            ((exprp ts)
+                (setf result (expr)))
+            ((null ts)
+                (setf result nil))
+            (t (error "Error in statement.")))
+        (separator (scan))
+        result))
+
+(defun definition (&optional (ts (scan)))
+    (if
+        (eq ts 'const) 
+            (let* (
+                (id (scan))
+                (equals (scan))
+                (expr (expr)))
+
+                (if (eq equals 'eq)
+                    (list 'const id expr)
+                    (error "There is no := operator after const definition.")))
+            (error "Error in definition.")))
+
+(defun separator (ts)
+    (if (or (eq ts 'sep) (null ts))
+        'sep
+        (error "Invalid separator.")))
 
 (defun expr()
     (make-node (term) (expr-list (scan))))
@@ -104,6 +150,24 @@
                (var (symbolp snd-lstr))))
       lstr
       (error "Not a valid number!"))))
+
+(defun parse-const (input const)
+    (cond
+        ((null input)
+            nil)
+        ((null const)
+            input)
+        ((eq (car input) (car const))
+            (parse-const (cdr input) (cdr const)))))
+
+(defun exprp (ts)
+    (or
+        (eq ts 'lpt)
+        (eq (car ts) 'num)
+        (eq (car (coerce (symbol-name ts) 'list)) #\?)))
+
+(defun definition-p (ts)
+    (eq ts 'const))
 
 (set-macro-character #\! (get-macro-character #\)))
 (set-dispatch-macro-character #\# #\!
