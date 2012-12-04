@@ -3,8 +3,8 @@
     
 (defun signer (sym)
     (or
-        (and (eq sym #\+) 'plus)
-        (and (eq sym #\-) 'minus)
+        (and (eq sym #\+) 'add)
+        (and (eq sym #\-) 'sub)
         (and (eq sym #\*) 'mul)
         (and (eq sym #\/) 'div)))
     
@@ -22,6 +22,13 @@
             
 (defun expres (str &key (number 0) (read-var nil) (var nil))
     (cond
+        (read-var
+            (if (alpha-char-p (car str))
+                (expres (cdr str) :read-var t :var (cons (car str) var))
+                (cons (list 'var (intern (coerce (reverse (mapcar #'char-upcase
+                                                                   var))
+                                          'string)))
+                 (expres str))))
         ((null str) nil)
         ((eq (car str) #\()
             (cons 'lpt (expres (cdr str))))
@@ -34,19 +41,8 @@
                 (expres (cdr str) :number (+ (* number 10) (car str)))
                 (append (list (list 'num (+ (* number 10) (car str)))) (expres (cdr str)))))
         ((eq (car str) #\?)
-         (if (alpha-char-p (cadr str))
-           (expres (cdr str) :read-var t :var '(#\?))
-           (cons '"Expected name after ? symbol" (expres (cdr str)))))
-        ((and (alpha-char-p (car str)) read-var)
-         (if (and (cadr str) (alpha-char-p (cadr str)))
-           (expres (cdr str) :read-var t :var (cons (car str) var))
-           (cons (list 'var (intern (coerce (reverse (mapcar #'char-upcase
-                                                             (cons (car str)
-                                                                   var)))
-                                            'string)))
-                 (expres (cdr str)))))
-        (t (cons '"Unknown symbol" (expres (cdr str))))))
-        
+          (expres (cdr str) :read-var t :var '(#\?)))))
+                   
 (defun lexer(str)
     (expres (normalize-list str)))
 
@@ -70,8 +66,8 @@
     
 (defun expr-list(ts)
     (cond
-        ((eq ts 'plus) (list 'add (make-node (term) (expr-list (scan)))))
-        ((eq ts 'minus) (list 'sub (make-node (term) (expr-list (scan)))))
+        ((eq ts 'add) (list 'add (make-node (term) (expr-list (scan)))))
+        ((eq ts 'sub) (list 'sub (make-node (term) (expr-list (scan)))))
         (t (unscan ts) nil)))
         
 (defun term()
@@ -108,4 +104,13 @@
                (var (symbolp snd-lstr))))
       lstr
       (error "Not a valid number!"))))
-    
+
+(set-macro-character #\! (get-macro-character #\)))
+(set-dispatch-macro-character #\# #\!
+    (lambda (stream sub-char arg)
+        (let ((cmd (read stream t nil t))
+            (string (lexer (read stream t nil t))))
+
+        (defun scan() (pop string))
+        (defun unscan (el) (push el string))
+        `(,cmd))))
