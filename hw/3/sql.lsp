@@ -77,5 +77,3 @@
 (defun make-select (file1 file2 file3)
   (read-words "user.txt"))
 
-
-;(lambda (res-file &key name surname age auto color year))

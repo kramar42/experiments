@@ -15,7 +15,6 @@
 (defparameter identif-table '(0))
 (defparameter numbers-table '(100))
 
-(init)
 
 ; LEXER FUNCTIONS
 
@@ -47,14 +46,29 @@
   (cond
     ; Process number
     ((member _token_ num-values)
-     (read-num)) 
+     (read-num))
+
+    ; const
+    ((eq _token_ (car const))
+      (progn
+        (print "const")
+        (labels ((read-const (const)
+          (scan)
+          (if (eq _token_ (car const))
+            (progn
+              (scan)
+              (read-const (cdr const)))
+            (if (null const)
+              (out 1)
+              (out nil)))))
+        (read-const const))))
 
     ; Or any other valid symbol
     ((not (null (assoc _token_
-                       (cdr identif-table))))
-     (progn
-       (out (get-identif _token_))
-       (scan)))
+     (cdr identif-table))))
+    (progn
+     (out (get-identif _token_))
+     (scan)))
 
     ; Unknown submol
     (t (out nil)))
@@ -84,13 +98,14 @@
 (defun expr ()
   "Parse input as expression.
   <term> <expr-list>"
-  (let ((term-val (term))
+  (let* ((term-val (term))
         (expr-val (expr-list)))
-  (list
-   'expr
-   (car expr-val)
-   term-val
-   (cdr expr-val))))
+  (append
+    (list
+     'expr
+     (car expr-val)
+     term-val)
+    (cdr expr-val))))
 
 
 (defun term ()
@@ -98,16 +113,12 @@
   <factor> <term-list>"
   (let* ((factor-val (factor))
          (term-val (term-list)))
-  (cons
-   'term
-   (if (null term-val)
+  (append
     (list
+      'expr
       (car factor-val)
       factor-val)
-    (list
-     (car term-val)
-     factor-val
-     (cdr term-val))))))
+    term-val)))
 
 
 (defun factor ()
@@ -137,15 +148,14 @@
     (if (member sign expr-signs)
       (progn
         (scan)
-        (let ((term-val (term))
-              (expr-val (expr-list))
-              (sign (get-sign sign)))
-        (if (null expr-val)
-          (cons sign (list term-val))
+        (let* ((term-val (term))
+          (expr-val (expr-list))
+          (sign (get-sign sign)))
+        (append
           (list
             sign
-            term-val
-            expr-val)))))))
+            term-val)
+          expr-val))))))
 
 
 (defun term-list ()
@@ -171,23 +181,6 @@
 
 
 ; SOME ADDITIONAL FUNCTIONS
-
-(defun init ()
-  "Initial fill of num-values & identif-table."
-  (setf num-values (mapcar #'code-char
-    (labels ((range (count start)
-      (loop repeat count for i from start by 1 collect i)))
-    (range 10
-      (char-code #\0)))))
-  
-  (mapcar (lambda (elem) (add-identif elem))
-    (concatenate 'list
-      (list separator)
-      expr-signs
-      term-signs
-      scopes))
-  T)
-
 
 (defun read-num ()
   "Read numbers from input & push result to output."
@@ -260,7 +253,11 @@
 
 (defun get-sign (sign)
   "Get sign symbol from sign char."
-  (intern (coerce (list sign) 'string)))
+  (case sign
+    (#\+ 'add)
+    (#\- 'sub)
+    (#\* 'mul)
+    (#\/ 'div)))
 
 
 (defun out (identif)
@@ -272,6 +269,24 @@
   "Scan next token from input."
   (setf _token_ (car _input_))
   (setf _input_ (cdr _input_)))
+
+
+(defun init ()
+  "Initial fill of num-values & identif-table."
+  (setf num-values (mapcar #'code-char
+    (labels ((range (count start)
+      (loop repeat count for i from start by 1 collect i)))
+    (range 10
+      (char-code #\0)))))
+  
+  (mapcar (lambda (elem) (add-identif elem))
+    (concatenate 'list
+      (list separator const eq-sign)
+      expr-signs
+      term-signs
+      scopes))
+  T)
+(init)
 
 
 (set-macro-character #\! (get-macro-character #\)))
