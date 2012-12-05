@@ -95,6 +95,15 @@
                                    ,@(cdr cnd))))))
                  body)))))
 
+(defmacro /. (term vars &body rules)
+    (labels ((%expander (term vars rules)
+        (mapcar (lambda (elem)
+            (if (not (atom elem))
+                (forthis elem vars rules)
+                (%expander elem vars rules)))
+        term)))
+    (%expander term vars rules)))
+
 (defun quote-tree (tree current-node)
   (cond
     ((listp tree)
@@ -110,19 +119,6 @@
      (list 'quote tree))
     ((numberp tree)
      tree)))
-
-(set-dispatch-macro-character #\# #\!
-                              (lambda (stream char1 char2)
-                                (declare (ignore char1 char2))
-                                (let ((term (read stream t nil t))
-                                      (str (read stream t nil t)))
-                                  (unless
-                                    (and (symbolp term)
-                                         (stringp str))
-                                         (error "#! has the following format: #! <symbol> <string>"))
-                                  (case term
-                                    (expr (quote-tree (parse-expr str) 'expr))
-                                    (num  (quote-tree (parse-num str) 'num))))))
 
 (defmacro with-unique-names (names &body body)
   `(let (,@(mapcar (lambda (name) (list name `',(gensym))) names))
@@ -185,6 +181,22 @@
     (let ((b (recbind x binds)))
       (values (cdr b) b))))
 
+(set-macro-character #\! (get-macro-character #\)))
+(set-dispatch-macro-character #\# #\!
+                              (lambda (stream char1 char2)
+                                (declare (ignore char1 char2))
+                                (let ((term (read stream t nil t))
+                                      (str (read stream t nil t)))
+                                  (unless
+                                    (and (symbolp term)
+                                         (stringp str))
+                                         (error "#! has the following format: #! <symbol> <string>"))
+                                  (case term
+                                    (expr (quote-tree (parse-expr str) 'expr))
+                                    (num  (quote-tree (parse-num str) 'num))))))
+
+
+
 (defun calc (x)
   (forthis x
            ((expr ?el ?er)
@@ -194,4 +206,3 @@
            (#! expr "?el * ?er" (* (calc ?el) (calc ?er)))
            (#! expr "?el / ?er" (/ (calc ?el) (calc ?er)))
            (#! expr "?n" (second ?n))))
-

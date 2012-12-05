@@ -23,11 +23,16 @@
                       ((or (alpha-char-p x) (eq x #\?)) x)
                       (t 'ERR)))
              list1)))
+
+(defun is-char (ts)
+    (if (null ts)
+        nil
+        (alpha-char-p ts)))
             
 (defun expres (str &key (number 0) (read-const nil) (read-var nil) (var nil))
     (cond
         (read-var
-            (if (alpha-char-p (car str))
+            (if (is-char (car str))
                 (expres (cdr str) :read-var t :var (cons (car str) var))
                 (cons (list 'var (intern (coerce (reverse (mapcar #'char-upcase
                                                                    var))
@@ -60,7 +65,7 @@
 (defun parser(str)
     (defun scan() (pop str))
     (defun unscan (el) (push el str))
-    (grammar))
+    (stmt))
 
 (defun swapper (lst)
 "Swaps first and second elements of the list, 
@@ -125,7 +130,7 @@
         ((eq ts 'div) (list 'div (make-node (term) (term-list (scan)))))
         (t (unscan ts) nil)))
     
-(defun factor(ts)
+(defun factor(&optional (ts (scan)))
     (cond
         ((and (listp ts) (eq (car ts) 'num)) (list 'expr 'num ts))
         ((and (listp ts) (eq (car ts) 'var)) ts)
@@ -164,17 +169,7 @@
     (or
         (eq ts 'lpt)
         (eq (car ts) 'num)
-        (eq (car (coerce (symbol-name ts) 'list)) #\?)))
+        (eq (car (coerce (symbol-name (cadr ts)) 'list)) #\?)))
 
 (defun definition-p (ts)
     (eq ts 'const))
-
-(set-macro-character #\! (get-macro-character #\)))
-(set-dispatch-macro-character #\# #\!
-    (lambda (stream sub-char arg)
-        (let ((cmd (read stream t nil t))
-            (string (lexer (read stream t nil t))))
-
-        (defun scan() (pop string))
-        (defun unscan (el) (push el string))
-        `(,cmd))))
