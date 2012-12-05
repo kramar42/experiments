@@ -165,11 +165,9 @@
   (and (symbolp x) (eq (char (symbol-name x) 0) #\?)))
 
 (defun myassoc (x binds)
-  ;(format t "myassoc ~A ~A~%" x binds)
   (when binds
     (if (eq x (first (car binds)))
       (progn
-        ;(format t "myassoc found ~A~%"(second (car binds)))
         (car binds))
       (myassoc x (cdr binds)))))
 
@@ -182,20 +180,25 @@
       (values (cdr b) b))))
 
 (set-macro-character #\! (get-macro-character #\)))
+
 (set-dispatch-macro-character #\# #\!
-                              (lambda (stream char1 char2)
-                                (declare (ignore char1 char2))
-                                (let ((term (read stream t nil t))
-                                      (str (read stream t nil t)))
-                                  (unless
-                                    (and (symbolp term)
-                                         (stringp str))
-                                         (error "#! has the following format: #! <symbol> <string>"))
-                                  (case term
-                                    (expr (quote-tree (parse-expr str) 'expr))
-                                    (num  (quote-tree (parse-num str) 'num))))))
+    (lambda (stream char1 char2)
+        (declare (ignore char1 char2))
+        (let ((term (read stream t nil t))
+          (str (lexer (read stream t nil t))))
+        (defun scan() (pop str))
+        (defun unscan (el) (push el str))
+        `(,term))))
 
+#|
+(set-dispatch-macro-character #\# #\!
+    (lambda (stream char1 char2)
+        (declare (ignore char1 char2))
+        (let ((term (read stream t nil t))
+            (str ((read stream t nil t)))
 
+        )))
+|#
 
 (defun calc (x)
   (forthis x

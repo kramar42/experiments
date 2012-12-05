@@ -182,20 +182,29 @@
       (values (cdr b) b))))
 
 (set-macro-character #\! (get-macro-character #\)))
+
 (set-dispatch-macro-character #\# #\!
-                              (lambda (stream char1 char2)
-                                (declare (ignore char1 char2))
-                                (let ((term (read stream t nil t))
-                                      (str (read stream t nil t)))
-                                  (unless
-                                    (and (symbolp term)
-                                         (stringp str))
-                                         (error "#! has the following format: #! <symbol> <string>"))
-                                  (case term
-                                    (expr (quote-tree (parse-expr str) 'expr))
-                                    (num  (quote-tree (parse-num str) 'num))))))
+    (lambda (stream char1 char2)
+        (declare (ignore char1 char2))
+        (let ((term (read stream t nil t))
+            (str (read stream t nil t)))
+        (unless
+            (and (symbolp term)
+               (stringp str))
+            (error "#! has the following format: #! <symbol> <string>"))
+        (case term
+            (expr (quote-tree (parse-expr str) 'expr))
+            (num  (quote-tree (parse-num str) 'num))))))
 
+#|
+(set-dispatch-macro-character #\# #\!
+    (lambda (stream char1 char2)
+        (declare (ignore char1 char2))
+        (let ((term (read stream t nil t))
+            (str ((read stream t nil t)))
 
+        )))
+|#
 
 (defun calc (x)
   (forthis x

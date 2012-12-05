@@ -43,6 +43,8 @@
             (cons 'const (expres (parse-const (cdr str) (cdr (coerce "const" 'list))))))
         ((and (eq (car str) #\:) (eq (cadr str) #\=))
             (cons 'eq (expres (cddr str))))
+        ((and (eq (car str) #\i) (eq (cadr str) #\d))
+            (cons 'id (expres (cddr str))))
         ((eq (car str) #\()
             (cons 'lpt (expres (cdr str))))
         ((eq (car str) #\))
@@ -134,6 +136,7 @@
     (cond
         ((and (listp ts) (eq (car ts) 'num)) (list 'expr 'num ts))
         ((and (listp ts) (eq (car ts) 'var)) ts)
+        ((and (listp ts) (eq (car ts) 'id)) ts)
         (t (prog1 (expr) (scan)))))
 
 (defun parse-expr (str)
