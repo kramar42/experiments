@@ -14,12 +14,10 @@
 
 
 (defun find-in-context (symb &optional (current *context*))
-  ;;(format t "find-in-context ~A ~A ~A~%" symb (symbol-package symb) current)
   (if (null current)
     nil
     (aif (gethash symb (car current))
          (progn
-           ;;(format t "found ~A ~A~%" symb it)
          it)
          (find-in-context symb (cdr current)))))
 
@@ -171,18 +169,6 @@
       (values (cdr b) b))))
 
 (set-macro-character #\! (get-macro-character #\)))
-
-#|
-(set-dispatch-macro-character #\# #\!
-    (lambda (stream char1 char2)
-        (declare (ignore char1 char2))
-        (let ((term (read stream t nil t))
-          (str (lexer (read stream t nil t))))
-        (defun scan() (pop str))
-        (defun unscan (el) (push el str))
-        `(,term))))
-|#
-
 (set-dispatch-macro-character #\# #\!
     (lambda (stream char1 char2)
         (declare (ignore char1 char2))
@@ -195,13 +181,3 @@
             (case term
               (expr (quote-tree (parse-expr str) 'expr))
               (num  (quote-tree (parse-num str) 'num))))))
-
-(defun calc (x)
-  (forthis x
-    ((expr ?el ?er)
-        (num ?n))
-    (#! expr "?el + ?er" (+ (calc ?el) (calc ?er)))
-    (#! expr "?el - ?er" (- (calc ?el) (calc ?er)))
-    (#! expr "?el * ?er" (* (calc ?el) (calc ?er)))
-    (#! expr "?el / ?er" (/ (calc ?el) (calc ?er)))
-    (#! expr "?n" (second ?n))))
