@@ -3,7 +3,6 @@
 
 def parse(pref, equation, variables, functions, log):
     log.write(pref)
-    log.write(equation + ' = ')
     for k, v in variables.items():
         if v < 0:
             v = '(' + str(v) + ')'
