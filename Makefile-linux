@@ -1,0 +1,12 @@
+
+INCLUDE=`sdl-config --cflags`
+LIBS=`sdl-config --libs`
+LINKER=-lSDLmain -lSDL -lSDL_ttf
+
+DIR=~/Code/the-game
+
+rlg:
+	g++ $(DIR)/src/*.cpp $(INCLUDE) $(LIBS) $(LINKER) -Wall -o the-game
+
+clean:
+	rm -f the-game.exe
