@@ -22,30 +22,30 @@ public class Graph
 	{
 		this.threadsNo = threadsNo;
 		this.pool = Executors.newFixedThreadPool(threadsNo);
-		
+
 		data = new int [size][size];
 		weights = new int [size];
 		visited = new boolean[size];
 	}
-	
+
 	// Method is called from fillThread.run()
 	public synchronized void addEdge(int i, int j, int weight)
 	{
 		data[i][j] = data[j][i] = weight;
 	}
-	
+
 	// Filling graph
 	public void fill(int seed)
-	{	
+	{
 		Random random = new Random(seed);
 		Future<?> []results = new Future<?> [threadsNo];
-		
-		for (int thread = 0; thread < threadsNo; ++thread)		
+
+		for (int thread = 0; thread < threadsNo; ++thread)
 		{
 			// Create task for all threads
 			results[thread] = pool.submit(new Thread(new fillThread(this, random, thread)));
 		}
-		
+
 		for (Future<?> result : results)
 		{
 			try
@@ -56,18 +56,18 @@ public class Graph
 				e.printStackTrace();
 			}
 		}
-		
+
 		System.out.println("Graph filled.");
 	}
-	
+
 	private void calculateMinimums(int from, int to)
 	{
 		// All vertexes have starting infinity values of weights
 		Arrays.fill(weights, Dijkstra.INFINITY);
-		
+
 		// Starting vertex has zero value
 		weights[from] = 0;
-		
+
 		int current = from;
 		while (current != to)
 		{
@@ -79,16 +79,16 @@ public class Graph
 				results.add(f);
 			}
 			visited[current] = true;
-			
+
 			// Get results and find minimum
 			int next = to;
 			for (Future<Edge> result : results)
-			{		
+			{
 				try
 				{
 					Edge edge = result.get();
 					int weight = edge.getWeight();
-					
+
 					synchronized(this)
 					{
 						// Calculate minimum
@@ -99,17 +99,17 @@ public class Graph
 				{
 					e.printStackTrace();
 				}
-				
+
 			}
 			current = next;
 		}
 		System.out.println("Calculated minimums of graph.");
 	}
-	
+
 	public int [] findPath(int from, int to)
 	{
 		calculateMinimums(from, to);
-		
+
 		ArrayList<Integer> path = new ArrayList<Integer>();
 		int prev = to;
 		// Going from last to first
@@ -127,7 +127,7 @@ public class Graph
 			}
 		}
 		path.add(from);
-		
+
 		// Reversing order of vertexes & casting to array of ints
 		Integer[] integerPath = path.toArray(new Integer[path.size()]);
 		int [] returnPath = new int [path.size()];
@@ -135,12 +135,12 @@ public class Graph
 		{
 			returnPath[i] = integerPath[returnPath.length - i - 1];
 		}
-		
+
 		pool.shutdown();
 		System.out.println("Found shortest path.");
 		return returnPath;
 	}
-	
+
 	// Threads number
 	private int threadsNo;
 	// Pool of threads
@@ -151,7 +151,7 @@ public class Graph
 	private int [] weights;
 	// What vertexes were visited
 	private boolean [] visited;
-	
+
 	// ======= CLASS FILLTHREAD =======
 	private class fillThread implements Runnable
 	{
@@ -161,29 +161,29 @@ public class Graph
 			this.random = random;
 			this.thread = thread;
 		}
-		
+
 		public void run()
 		{
 			int workPerThread = Dijkstra.GRAPH_SIZE / Dijkstra.THREADS_NO;
-			
-			for (int i = thread * workPerThread; 
+
+			for (int i = thread * workPerThread;
 					i < (thread + 1) * workPerThread; ++i)
 			{
 				for (int j = 0; j < Dijkstra.GRAPH_SIZE / 3; ++j)
 				{
-					outer.addEdge(i, random.nextInt(Dijkstra.GRAPH_SIZE), 
+					outer.addEdge(i, random.nextInt(Dijkstra.GRAPH_SIZE),
 							random.nextInt(Dijkstra.INFINITY));
 					//System.out.println("Adding edge. Thread " + thread);
 				}
 			}
 		}
-		
+
 		// ======= PRIVATE =======
 		private Graph outer;
 		private Random random;
 		private int thread;
 	}
-	
+
 	// ======= CLASS CALCULATETHREAD =======
 	private class calculateThread implements Callable<Edge>
 	{
@@ -193,7 +193,7 @@ public class Graph
 			this.current = current;
 			this.i = i;
 		}
-		
+
 		public Edge call()
 		{
 			synchronized(outer)
@@ -202,24 +202,24 @@ public class Graph
 				// If are connected
 				if (outer.data[current][i] != 0 && !outer.visited[i])
 				{
-					newWeight = outer.weights[current] + 
+					newWeight = outer.weights[current] +
 							outer.data[current][i];
-					
-					newWeight = newWeight < outer.weights[i] ? 
+
+					newWeight = newWeight < outer.weights[i] ?
 							newWeight : outer.weights[i];
-					outer.weights[i] = newWeight; 
+					outer.weights[i] = newWeight;
 				}
-				
+
 				return new Edge(i, newWeight);
 			}
 		}
-		
+
 		// ======= PRIVATE =======
 		private Graph outer;
 		private int current;
 		private int i;
 	}
-	
+
 	// ======= CLASS EDGE =======
 		private class Edge
 		{
@@ -228,10 +228,10 @@ public class Graph
 				this.vertex = vertex;
 				this.weight = weight;
 			}
-			
+
 			public int getVertex() {return vertex;}
 			public int getWeight() {return weight;}
-			
+
 			private int vertex;
 			private int weight;
 		}
