@@ -1,0 +1,24 @@
+{
+  "name": "codeclicker",
+  "version": "0.0.1",
+  "description": "Codeclicker Game",
+  "main": "index.js",
+  "dependencies": {
+    "express": "~3.4.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kramar42/codeclicker.server"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "game",
+    "clicker"
+  ],
+  "author": "Kramarenko Alexey",
+  "license": "MIT",
+  "readmeFilename": "README.md"
+}
