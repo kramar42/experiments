@@ -1,0 +1,290 @@
+* Lecture 1
+** Атомарная переменная   или   список
+Функция создания списков - list
+
+Предикаты ATOM - проверка на атомарность переменной
+          CONS - конструирование списка
+** Сравнивание списков
+eq        сравнение символов
+eql       сравнивание чисел вне зависимости от типа    
+          !!! Т при (eql 3 3.0)
+equal     проверяет структурность
+equalp    сравнение любых обьектов
+
+null      проверка на ноль
+** Bindings
+Биндинги
+    set    без автоматического квотирование
+    setq   с кваотированием
+    setf   наиболее общий вариант
+
+вернуть забинденное значение
+    symbol-value
+
+(eval 'x)
+** Functions
+(defun <name>
+    (<args>)
+    form1
+    form2
+    ...
+    formN
+) -> result = formN
+
+symbol-name
+name-symbol
+** Scopes
+let     - локальные переменные
+(let    ( (x 1)  (y 2) )
+    form1
+    form2
+    ...
+    formN
+}
+
+let*    - гарантирует порядок байндинга переменных
+** УПРАВЛЯЮЩИЕ КОНСТРУКЦИИ
+(if () <then-form>
+       <else-from>)
+
+
+progn - последовательное выполнение форм (как {})
+
+(COND
+    (p1 f1)
+    (p2 f2)
+    ...
+    (t fN))
+
+(when () ...)
+(unless () ...)
+
+(loop ...)
+(do ...)
+(dolist ...)
+** Home Work
+*** Доделать прогу
+*** Реализовать сортировку выбором на лиспе (2 способа) рекурсивный и нерекурсивный (+ направление)
+*** В списке символов надо найти подсписок который содержит 2 пересекающихся полиндрома максимальной длинны (один символ не палиндром)
+* Lection 2
+(load "file.lsp")
+
+** Functions as 1st class objects
+** Closure
+is a function definition + context
+Замыкания. Контекст.
+** Вызов функции
+apply, funcall
+apply - '(1 2 3 4 5) (или последний елемент - список)
+funcall - 1 2 3 4 5
+** rlwrap on gentoo
+** maps
+mapcar
+mapc - возвращает сам список
+mapcan - действие над последним елементом
+!!! ДЕСТРУКТИВНЫЙ !!!
+** folding
+(reduce (lambda (a x) ()) '(1 2 3))
+a - accumulator
+x - element
+** keys
+initial parametrs
+(func ... :keys)
+(append
+    :from-end t
+    :initial-value '(i n i t))
+** remove
+(remove item lst &key from-end test)
+(remove ...)
+default remove test - eq
+(remove-if ...)
+(remove-if-not ...)
+** complement
+Создание обратного предиката
+четное - нечетное
+** Home Work
+*** traverse-post (func tree fget-node fget-children)
+как мапкар.
+обход дерева, а не списка.
+дерево.
+представление девера.
+fmake-node fmake-node fget-children
+
+func
+унарная функция
+*** traverse-pre  (func tree fget-node fget-children fstop)
+fstop - условие остановки
+если t - остановка и удаление поддерева
+
+cond -> if
+(defun test (func input result)
+    "               "
+    ...)
+    flatten with reduce
+* Lection 3
+** Parameter List
+Список параметров
+
+(defun foo (a)
+   (print a))
+
+(defun foo (&optional (a 10))
+   (print a))
+
+c-supplied-p - было переданно значение
+
+(defun foo (&key (a 10))
+   (print a))
+   
+(defun foo (&rest a))
+   (print a))
+** Hashtable
+(defparameter hash (make-hash-table :test #'equalp))
+Как мы будем сравнивать ключи
+(make-hash-table :test #'equalp)
+
+(gethash entry hash)
+Как записать в хеш - (setf (gethash 'entry hash) "one")
+*** Warm-up
+Apple - 3
+Bulb  - 5
+*** Remove from hash
+(remhash 'key hash)
+*** maphash
+(maphash 'function *hash)
+'function -> (key value)
+** format
+(format destination control-string &rest args)
+~A ~%
+(format nil ...) -> returning string
+** Characters in LISP
+#\a #\1 #\  #\)
+#\Space #\Newline #\Tab
+*** Get / Put to string
+(char string index) => character
+*** Compare
+CHAR>
+CHAR<
+*** Convert to code and vice versa
+(char-code ...)
+(code-char ...)
+** Strings
+*** Strings are sequences
+*** Compare
+(string= str1 str2
+    :start1 0 :end1 2
+    :start2 4 :end2 6) => T
+*** write-to-string
+number => string
+(write-to-string (/ 1 3))
+*** parse-integer
+(parse-integer "5789292"
+    :start 1
+    :end 4)
+возвращает значение позиции, на которой закончило парсить
+*** concatenate result-type &rest sequences
+(concatenate 'string "Cat" " " "Dog")
+(concatenate 'list "Cat" " " "Dog") string -> list of chars
+*** coerce object result-type => result
+(coerce (nth 2 '(#\C #\a #\t)) 'string)
+(coerce "CarDog" 'list)
+
+(coerce '(#\C #\a #\r #\D #\o #\g) 'string)
+*** Iteration through string
+(mapcar #'digit-char-p (coerce "ab36h1l26" 'list))
+(map 'list #'digit-char-p "a3j63l23")
+*** TODO Remove characters from string
+Using map and замыкания
+** Files
+*** Read
+(with-open-file (stream "name.txt")
+(format t "~a~%" (read-line stream)))
+*** Write
+(with-open-file (stream "txt")
+(format stream ""))
+*** (with-open-file :direction :output :if-exists :supersede)
+** Structures
+*** (defstruct row
+        department
+        chief
+        car)
+*** (setq rw1 (make-row :department 'A
+                        :chief      "John"
+                        :car        "BMW"))
+*** row-car
+row-chief
+
+Обращение к полю таблицы
+*** when
+(when lst
+  (let* ...))
+** TODO HW (paper)
+* Lection 4
+** Macros
+(defmacro nil! (var)
+(list 'setq var nil))
+, - removes `
+,@ - removes ` and unpacks list
+   (we are splicing)
+** Member
+** Macroexpand
+macroexpand-1
+** eval macro
+setq exp (macroexpand-1
+
+(eval exp)
+** desctructuring-bind
+** symbol-macrolet
+** defmacro (gensym)
+** HW
+(calc `(+ (+ 1 3)
+    (let ((y (+ 3 5))) (+ y 2))))
+14
+
+(defmacro make-calc (expr) ...)
+(make-calc `(+ 1 x))
+Result:
+(lambda (x) (calc `(+ 1 x)))
+
+(make-calc `(+ (+ 1 3)
+    (let ((y (+ 3 5) ...
+Result:
+(lambda (x) (calc `(+ 4 (+ 8 x))))
+
+Result:
+(lambda (x) (calc `(+ 12 x)))
+
+* Lection 5
+11/07/12
+** Advanced Macros
+** alambda
+(alambda (x) (if (= x 0) 1 (* x (self (1- x)))))
+(defmacro alambda (parms &body body)
+    `(labels ((self ,parms ,@body))
+    #'self))
+** REST IN REST
+** HW
+paper
+b* Lection 6
+12/16/12
+** Reader macro
+set-macro-character
+** Read
+read &optional input-stream eof-error-p eof-value recursive-p
+(read stream t nil t)
+** Dispatch
+set-dispatch-macro-character disp-char sub-char new-function &optional readtable
+** delimeter
+** 18 глава onlisp
+match
+** HW
+write reater macro
+#!<grammar node name><string>
+#!expr "10+5"
+extend grammar to recognize variables
+var => ?[a..zA..Z][a..zA..Z0..9]*
+#!expr "?e1+?e2" => (expr add (var ?e1) (var ?e2))
+* Lection 6
+11/21/12
+** Quasi quotation
+** Pattern matching
