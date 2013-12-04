@@ -1,0 +1,4 @@
+#define WINDOW_HEIGHT 60
+#define WINDOW_WIDTH 80
+#define MAP_HEIGHT 40
+#define MAP_WIDTH 60
