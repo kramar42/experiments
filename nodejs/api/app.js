@@ -5,11 +5,11 @@ var express = require('express'),
 var app = express();
 app.disable('x-powered-by');
 app.db = new pg.Client({
-    user: 'worker',
-    password: 'ditinua',
-    database: 'avmultiscan',
-    host: '10.0.0.254',
-    port: 5432
+    user: '',
+    password: '',
+    database: '',
+    host: '',
+    port: 0
 });
 app.db.connect(function(err) {
     if (err) {
