@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Users</title>
+</head>
+<body>
+<?php
+if (empty((array) $result)) {
+	echo 'There are no users yet.';
+} else {
+	echo 'List of users:<br><table>';
+	foreach ($result as $user) {
+		echo '<tr><td>' . $user->name . '</td><td><a href=/chat/chat.php?token=' . $user->token . '>Login</a></td></tr>';
+	}
+	echo '</table>';
+}
+?>
+Create new user:
+<form method="post" action="/chat/user.php">
+	<input name="name">
+	<input type="submit" value="Create">
+</form>
+</body>
+</html>

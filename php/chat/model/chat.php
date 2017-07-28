@@ -4,7 +4,7 @@ require_once('model.php');
 class ChatModel extends Model {
 
 	public function get($token) {
-		$sth = $this->db->prepare('select from_user.name as "from", to_user.name as "to", text from message inner join user from_user on from_user.id = message.from_id inner join user to_user on to_user.id = message.to_id where from_id = (select id from user where token = :token) or to_id = (select id from user where token = :token) order by message.id desc');
+		$sth = $this->db->prepare('select from_user.name as "from", to_user.name as "to", text from message inner join user from_user on from_user.id = message.from_id inner join user to_user on to_user.id = message.to_id where from_id = (select id from user where token = :token) or to_id = (select id from user where token = :token) order by message.id');
 		$sth->execute(array(':token' => $token));
 		$result = $sth->fetchAll(PDO::FETCH_OBJ);
 		return $result;
@@ -19,7 +19,7 @@ class ChatModel extends Model {
 		$sth->execute(array(':name' => $user));
 		$second = $sth->fetchObject()->id;
 
-		$sth = $this->db->prepare('select from_user.name as "from", to_user.name as "to", text from message inner join user from_user on from_user.id = message.from_id inner join user to_user on to_user.id = message.to_id where (from_user.id in (:first, :second) and to_user.id in (:first, :second)) order by message.id desc');
+		$sth = $this->db->prepare('select from_user.name as "from", to_user.name as "to", text from message inner join user from_user on from_user.id = message.from_id inner join user to_user on to_user.id = message.to_id where (from_user.id in (:first, :second) and to_user.id in (:first, :second)) order by message.id');
 		$sth->execute(array(':first' => $first, ':second' => $second));
 		$result = $sth->fetchAll(PDO::FETCH_OBJ);
 		return $result;

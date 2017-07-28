@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Users</title>
+</head>
+<body>
+<?php
+if (empty((array) $result)) {
+	echo 'There are no messages yet.';
+} else {
+	echo '<table>';
+	foreach ($result as $message) {
+		echo '<tr><td>' . $message->from . '</td><td>' . $message->to . '</td><td><pre>' . $message->text . '</pre></td></tr>';
+	}
+	echo '</table>';
+}
+?>
+</body>
+</html>

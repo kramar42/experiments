@@ -37,7 +37,7 @@ class Controller {
 		if ($data) {
 			return $data;
 		}
-		return $null;
+		return null;
 	}
 
 	public function post_action($request) {

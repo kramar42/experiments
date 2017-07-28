@@ -37,11 +37,8 @@ class Controller {
 
 	public function post_action($name) {
 		if (isset($name)) {
-			$result = $this->model->create($name);
-			if ($result) {
-				return $result;
-			}
+			$this->model->create($name);
 		}
-		return null;
+		return $this->model->get_all();
 	}
 }
