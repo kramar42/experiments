@@ -1,4 +1,4 @@
 
 # TODO
-- Create html view with simple formatting
-- Change database schema by adding conversation table
+In apache config redirect api.php -> api and chat.php -> chat and so on...
+

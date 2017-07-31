@@ -1,14 +1,15 @@
 <?php
 
-class View {
-	public function render($result, $http_code) {
-		$response = new stdClass();
-		$response->status = $http_code;
-		if ($result == null) {
-			$result = new stdClass();
-		}
-		$response->result = $result;
-		http_response_code($http_code);
-		return json_encode($response, JSON_PRETTY_PRINT);
-	}
+class JsonView {
+    public function render($response, $http_code) {
+        $result = new stdClass();
+        $result->status = $http_code;
+        if ($response->has_errors()) {
+            $result->errors = $response->get_errors();
+        } else {
+            $result->result = $response->get_data();
+        }
+        http_response_code($http_code);
+        return json_encode($result, JSON_PRETTY_PRINT);
+    }
 }
