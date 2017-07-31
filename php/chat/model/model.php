@@ -5,7 +5,7 @@ class Model {
 
     public function __construct() {
         if (self::$db == null) {
-            self::$db = new PDO('sqlite:../db/db.sqlite');
+            self::$db = new PDO('sqlite:../db.sqlite');
             self::$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             self::$db->query('create table if not exists user (name text primary key, token integer not null)');
             self::$db->query('create table if not exists conversation (id integer primary key, first_user text not null, second_user text not null)');
